@@ -73,6 +73,24 @@
     (is (not (str/includes? html "<b>evil</b>")))
     (is (not (str/includes? html "<i>also evil</i>")))))
 
+(deftest page-title-and-meta-description-fall-back-to-title-and-tagline
+  (let [html (directory/page
+              {:origin "https://example.x402" :items []
+               :branding {:title "acme" :tagline "acme's tagline"}})]
+    (is (str/includes? html "<title>acme</title>"))
+    (is (str/includes? html "content=\"acme's tagline\""))))
+
+(deftest page-title-and-meta-description-can-be-overridden-independently
+  (let [html (directory/page
+              {:origin "https://example.x402" :items []
+               :branding {:title "acme" :tagline "acme's tagline"
+                          :page-title "acme — the open x402 facilitator"
+                          :meta-description "A longer SEO-friendly description."}})]
+    (is (str/includes? html "<title>acme — the open x402 facilitator</title>"))
+    (is (str/includes? html "content=\"A longer SEO-friendly description.\""))
+    (is (str/includes? html "<h1>acme</h1>"))
+    (is (str/includes? html "acme's tagline"))))
+
 (deftest page-shows-live-badge-by-default-and-can-be-omitted
   (let [html (directory/page {:origin "https://example.x402" :items []})]
     (is (str/includes? html "class=\"badge\"")))

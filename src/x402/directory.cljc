@@ -125,6 +125,8 @@
   {:title "x402 facilitator"
    :tagline "Live, agent-native x402 payment facilitator."
    :badge-label "Live"
+   :page-title nil
+   :meta-description nil
    :pitch-html nil
    :empty-html "<p class=\"empty\">No sellers registered yet.</p>"
    :nav-links []
@@ -144,13 +146,20 @@
                  {:seller :method :path-prefix :price {:usd :asset :network}
                   :description}.
    - :branding — optional overrides merged over `default-branding`:
-                 {:title :tagline :badge-label :pitch-html :empty-html
-                  :nav-links :extra-sections-html :extra-links :css}.
-                 `:pitch-html` is raw HTML (the caller's own copy — this
-                 library doesn't write marketing prose); pass nil to omit
-                 the pitch block entirely. `:badge-label` nil omits the
-                 status badge. `:nav-links` (a seq of {:href :label}) adds
-                 a jump-nav below the pitch; omitted (default) when empty.
+                 {:title :page-title :tagline :meta-description :badge-label
+                  :pitch-html :empty-html :nav-links :extra-sections-html
+                  :extra-links :css}.
+                 `:title` is the visible `<h1>`; `:page-title` overrides the
+                 `<title>` tag (falls back to `:title` when nil) — a longer,
+                 more descriptive `<title>` is common even when the on-page
+                 heading stays short. `:tagline` is the visible subheading;
+                 `:meta-description` overrides `<meta name=\"description\">`
+                 (falls back to `:tagline` when nil). `:pitch-html` is raw
+                 HTML (the caller's own copy — this library doesn't write
+                 marketing prose); pass nil to omit the pitch block
+                 entirely. `:badge-label` nil omits the status badge.
+                 `:nav-links` (a seq of {:href :label}) adds a jump-nav
+                 below the pitch; omitted (default) when empty.
                  `:extra-sections-html` is a seq of raw HTML strings
                  (each expected to be a self-contained `<section>...
                  </section>`) rendered between the resources table and the
@@ -158,14 +167,17 @@
                  reference list, or anything else a specific facilitator
                  wants that isn't generic enough for this library itself."
   [{:keys [origin items branding]}]
-  (let [{:keys [title tagline badge-label pitch-html empty-html nav-links
-                extra-sections-html extra-links css]}
-        (merge default-branding branding)]
+  (let [{:keys [title page-title tagline meta-description badge-label
+                pitch-html empty-html nav-links extra-sections-html
+                extra-links css]}
+        (merge default-branding branding)
+        page-title (or page-title title)
+        meta-description (or meta-description tagline)]
     (str
      "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">"
      "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
-     "<title>" (escape-html title) "</title>"
-     "<meta name=\"description\" content=\"" (escape-html tagline) "\">"
+     "<title>" (escape-html page-title) "</title>"
+     "<meta name=\"description\" content=\"" (escape-html meta-description) "\">"
      "<style>" css "</style></head><body>"
      "<header>"
      (when badge-label
