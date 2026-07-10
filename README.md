@@ -9,11 +9,11 @@ renders that same data as a human-readable HTML page (and, since
 so a facilitator operator doesn't have to hand-write either. Extracted
 2026-07-10 from [`gftdcojp/nexus-x402`](https://x402.nexus)'s production
 directory page (that facilitator's own live demo) into a reusable,
-branding-agnostic component. **Not yet adopted back as nexus-x402's actual
-dependency** — that repo currently vendors its own copy (which this
-library's design was kept in sync with as of 2026-07-10) rather than
-depending on this package; swapping to a real dependency is a tracked
-follow-up, not done.
+branding-agnostic component, then (same day) adopted back into
+nexus-x402 as its actual dependency (vendored, same convention as
+`kotoba-lang/pay`/`treasury`) — `nexus.directory` there is now a thin
+branding layer on top of this package's `page`/`llms-txt`, not a second
+copy of the renderer.
 
 ```clojure
 (require '[x402.directory :as directory])
@@ -69,12 +69,11 @@ that as a hard constraint, not a style preference (see the test suite's
 ## Live demo
 
 [`x402.nexus`](https://x402.nexus) — [gftdcojp/nexus-x402](https://github.com/gftdcojp/nexus-x402)'s
-self-hosted facilitator — runs its own vendored copy of this design in
+self-hosted facilitator — runs this package (vendored, see above) in
 production (content-negotiated: browsers get HTML, API/agent clients
 hitting the same URL without an `Accept: text/html` header get the
 unchanged JSON `/catalog` pointer; `GET /llms.txt` always returns
-markdown). See the "not yet adopted back" note above for the current
-relationship between that copy and this package.
+markdown).
 
 ## Test
 
