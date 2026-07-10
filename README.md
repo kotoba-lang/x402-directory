@@ -4,12 +4,16 @@
 
 x402 facilitators already serve a JSON `/catalog` so autonomous agents can
 discover what they can pay for (seller, price, gateway URL). This library
-renders that same data as a human-readable HTML page — so a facilitator
-operator doesn't have to hand-write a directory UI. Extracted 2026-07-10 from
-[`gftdcojp/nexus-x402`](https://x402.nexus)'s production directory page
-(that facilitator's own live demo) into a reusable, branding-agnostic
-component, and adopted back into nexus-x402 as its dependency (dogfooded,
-not just published).
+renders that same data as a human-readable HTML page (and, since
+2026-07-10, an [llms.txt](https://llmstxt.org) plain-markdown summary) —
+so a facilitator operator doesn't have to hand-write either. Extracted
+2026-07-10 from [`gftdcojp/nexus-x402`](https://x402.nexus)'s production
+directory page (that facilitator's own live demo) into a reusable,
+branding-agnostic component. **Not yet adopted back as nexus-x402's actual
+dependency** — that repo currently vendors its own copy (which this
+library's design was kept in sync with as of 2026-07-10) rather than
+depending on this package; swapping to a real dependency is a tracked
+follow-up, not done.
 
 ```clojure
 (require '[x402.directory :as directory])
@@ -22,17 +26,31 @@ not just published).
   :branding {:title "your-facilitator"
              :tagline "Self-hosted x402 payment facilitator."
              :pitch-html "<strong>No waitlist. Live today.</strong>"
+             ;; optional: jump-nav, extra <section>s (e.g. a quickstart),
+             ;; extra footer links -- all omitted unless supplied
+             :nav-links [{:href "#resources" :label "Resources"}]
+             :extra-sections-html ["<section id=\"docs\"><h2>Docs</h2><p>...</p></section>"]
              :extra-links [{:href "/catalog" :label "Catalog (JSON)"}
                            {:href "/health" :label "Health"}]}})
 ;; => "<!doctype html>..." — a complete, self-contained HTML page string
+
+(directory/llms-txt
+ {:origin "https://your-facilitator.example"
+  :items [...]  ; same shape as above
+  :branding {:title "your-facilitator"
+             :llms-summary "Self-hosted x402 payment facilitator."
+             :llms-links [{:href "/catalog" :label "Catalog"
+                           :note "JSON menu of every gated resource."}]}})
+;; => "# your-facilitator\n\n> Self-hosted x402...\n\n## API\n..." — plain markdown
 ```
 
 ## What's in scope / out of scope
 
 - **In scope**: rendering `{:seller :method :path-prefix :price :description}`
-  items (the shape any x402 `/catalog` already returns) as an HTML table,
-  with caller-supplied branding (title/tagline/pitch/links/CSS) and an
-  honest empty state.
+  items (the shape any x402 `/catalog` already returns) as an HTML page
+  and an [llms.txt](https://llmstxt.org) markdown summary, with
+  caller-supplied branding (title/tagline/pitch/nav/extra sections/links/
+  CSS) and an honest empty state in both formats.
 - **Out of scope**: fetching `/catalog` itself (the host does that — a
   Cloudflare Worker, a static-site build step, whatever), payment
   verification, and the facilitator/gateway logic itself (see
@@ -51,14 +69,17 @@ that as a hard constraint, not a style preference (see the test suite's
 ## Live demo
 
 [`x402.nexus`](https://x402.nexus) — [gftdcojp/nexus-x402](https://github.com/gftdcojp/nexus-x402)'s
-self-hosted facilitator — runs this library in production (content-negotiated:
-browsers get this HTML, API/agent clients hitting the same URL without an
-`Accept: text/html` header get the unchanged JSON `/catalog` pointer).
+self-hosted facilitator — runs its own vendored copy of this design in
+production (content-negotiated: browsers get HTML, API/agent clients
+hitting the same URL without an `Accept: text/html` header get the
+unchanged JSON `/catalog` pointer; `GET /llms.txt` always returns
+markdown). See the "not yet adopted back" note above for the current
+relationship between that copy and this package.
 
 ## Test
 
 ```bash
-clojure -M:test          # 8 tests
+clojure -M:test          # 16 tests
 clojure -M:lint           # clj-kondo
 ```
 

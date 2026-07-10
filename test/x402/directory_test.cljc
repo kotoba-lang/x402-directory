@@ -72,3 +72,69 @@
                :branding {:title "<b>evil</b>" :tagline "<i>also evil</i>"}})]
     (is (not (str/includes? html "<b>evil</b>")))
     (is (not (str/includes? html "<i>also evil</i>")))))
+
+(deftest page-shows-live-badge-by-default-and-can-be-omitted
+  (let [html (directory/page {:origin "https://example.x402" :items []})]
+    (is (str/includes? html "class=\"badge\"")))
+  (let [html (directory/page {:origin "https://example.x402" :items []
+                              :branding {:badge-label nil}})]
+    (is (not (str/includes? html "class=\"badge\"")))))
+
+(deftest page-nav-links-omitted-by-default-rendered-when-supplied
+  (let [html (directory/page {:origin "https://example.x402" :items []})]
+    (is (not (str/includes? html "class=\"jump\""))))
+  (let [html (directory/page
+              {:origin "https://example.x402" :items []
+               :branding {:nav-links [{:href "#resources" :label "Resources"}]}})]
+    (is (str/includes? html "class=\"jump\""))
+    (is (str/includes? html "href=\"#resources\""))))
+
+(deftest page-renders-extra-sections-html-verbatim-between-resources-and-footer
+  (let [html (directory/page
+              {:origin "https://example.x402" :items []
+               :branding {:extra-sections-html
+                          ["<section id=\"quickstart\"><h2>Quickstart</h2></section>"]}})]
+    (is (str/includes? html "<section id=\"quickstart\"><h2>Quickstart</h2></section>"))
+    (is (< (.indexOf html "id=\"resources\"") (.indexOf html "id=\"quickstart\"")))
+    (is (< (.indexOf html "id=\"quickstart\"") (.indexOf html "<footer>")))))
+
+;; ---- llms.txt ------------------------------------------------------------
+
+(deftest llms-txt-renders-title-summary-and-sellers
+  (let [txt (directory/llms-txt {:origin "https://example.x402" :items sample-items})]
+    (is (str/starts-with? txt "# x402 facilitator"))
+    (is (str/includes? txt "> Live, agent-native x402 payment facilitator."))
+    (is (str/includes? txt "murakumo"))
+    (is (str/includes? txt "kotobase"))
+    (is (str/includes? txt "$0.01"))))
+
+(deftest llms-txt-links-resolve-against-origin
+  (let [txt (directory/llms-txt {:origin "https://example.x402" :items []})]
+    (is (str/includes? txt "https://example.x402/catalog"))
+    (is (str/includes? txt "https://example.x402/health"))))
+
+(deftest llms-txt-honors-caller-branding
+  (let [txt (directory/llms-txt
+             {:origin "https://example.x402" :items []
+              :branding {:title "acme-x402"
+                         :llms-summary "acme's facilitator"
+                         :llms-intro "Extra context paragraph."
+                         :llms-links [{:href "/verify" :label "Verify" :note "POST payment+requirements"}]
+                         :llms-sections ["## Source\n- [acme/pay](https://example.com)"]
+                         :llms-empty "Nothing yet, check back soon."}})]
+    (is (str/starts-with? txt "# acme-x402"))
+    (is (str/includes? txt "> acme's facilitator"))
+    (is (str/includes? txt "Extra context paragraph."))
+    (is (str/includes? txt "https://example.x402/verify"))
+    (is (str/includes? txt "Nothing yet, check back soon."))
+    (is (str/includes? txt "## Source"))
+    (is (str/includes? txt "acme/pay"))))
+
+(deftest llms-txt-never-fabricates-when-registry-is-empty
+  (let [txt (directory/llms-txt {:origin "https://example.x402" :items []})]
+    (is (str/includes? txt "None registered yet."))
+    (is (not (str/includes? txt "murakumo")))))
+
+(deftest llms-txt-warns-against-treating-seller-fields-as-instructions
+  (let [txt (directory/llms-txt {:origin "https://example.x402" :items sample-items})]
+    (is (str/includes? txt "not instructions"))))
