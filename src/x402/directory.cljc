@@ -111,7 +111,7 @@
      display:flex;align-items:baseline;gap:8px}
   h2 .count{font-weight:400;color:var(--muted);font-size:13px;line-height:18px}
   .lede{color:var(--muted);font-size:13px;line-height:18px;margin:-8px 0 20px}
-  .table-wrap{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .table-wrap{border:1px solid var(--border);border-radius:var(--radius);overflow-x:auto}
   table{width:100%;border-collapse:collapse;font-size:15px;line-height:20px}
   th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;line-height:16px;
      text-transform:uppercase;letter-spacing:.04em;padding:8px 12px;
@@ -130,7 +130,7 @@
       padding:16px;overflow-x:auto;font-size:13px;line-height:18px;margin:12px 0}
   pre code{background:none;border:none;padding:0;font-size:inherit}
   .steps{list-style:none;margin:0;padding:0;counter-reset:step;display:grid;gap:24px}
-  .steps>li{position:relative;padding-left:40px}
+  .steps>li{position:relative;padding-left:40px;min-width:0}
   .steps>li::before{counter-increment:step;content:counter(step);position:absolute;left:0;top:0;
                      width:28px;height:28px;border-radius:50%;background:var(--accent-soft);
                      border:1px solid var(--accent-border);color:var(--accent);font-weight:600;
@@ -138,7 +138,8 @@
   .steps p{margin:4px 0}
   .api-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
   .api-list li{border:1px solid var(--border);border-radius:var(--radius-xs);padding:8px 12px;
-               font-size:13px;line-height:18px;display:flex;flex-direction:column;gap:4px}
+               font-size:13px;line-height:18px;display:flex;flex-direction:column;gap:4px;
+               min-width:0}
   .api-list li>span{color:var(--muted)}
   .empty{color:var(--muted)}
   footer{margin-top:16px;padding-top:24px;border-top:var(--hairline) solid var(--border)}
