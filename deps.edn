@@ -5,5 +5,13 @@
                   :main-opts ["-m" "cognitect.test-runner"]
                   :exec-fn cognitect.test-runner.api/test}
            :lint {:replace-deps {clj-kondo/clj-kondo {:mvn/version "2024.11.14"}}
-                  :main-opts ["-m" "clj-kondo.main" "--lint" "src" "test"
-                              "--fail-level" "error"]}}}
+                  :main-opts ["-m" "clj-kondo.main" "--lint" "src" "test" "scripts"
+                              "--fail-level" "error"]}
+           ;; Dev-time ONLY: regenerate the default-CSS palette from the
+           ;; kotoba-lang HIG design-system SSoT (shitsuke.hig). The output is
+           ;; checked into src/x402/directory.cljc so the library keeps zero
+           ;; runtime deps. `clojure -M:gen` to regenerate, `--check` to verify.
+           :gen {:extra-paths ["scripts"]
+                 :extra-deps {io.github.kotoba-lang/shitsuke
+                              {:git/sha "35099a71117c3ef7723a2dfa3e101e3643ae548c"}}
+                 :main-opts ["-m" "gen-default-css"]}}}

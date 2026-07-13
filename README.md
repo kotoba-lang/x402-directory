@@ -58,6 +58,39 @@ copy of the renderer.
   [`kotoba-lang/treasury`](https://github.com/kotoba-lang/treasury) for
   that layer).
 
+## Default CSS — generated from the kotoba-lang HIG design system
+
+The default page CSS sits on the kotoba-lang HIG design system: its palette
+block (`--bg/--fg/--muted/--border/--surface/--accent/...` custom
+properties, light + dark via `prefers-color-scheme`) is **generated from
+[`kotoba-lang/shitsuke`](https://github.com/kotoba-lang/shitsuke)'s
+`shitsuke.hig` semantic tokens** (Apple-HIG semantic colors, SF Pro/SF Mono
+font stacks, 0.5px hairline, radius scale), and the layout CSS uses the HIG
+text-style scale (17px/22px body, 13px/18px footnote, 34px/41px
+large-title, ...) and 4pt-grid spacing, with zero raw hex outside the
+generated palette block (test-enforced).
+
+The generated result is **checked in** (`default-palette-css` in
+`src/x402/directory.cljc`, between the `;; gen:begin`/`;; gen:end`
+markers), so the library itself keeps **zero runtime deps** — shitsuke is a
+dev-time dependency of the generator only, pinned by `:git/sha` in
+`deps.edn`'s `:gen` alias (currently `35099a7`). Regenerate after a
+shitsuke token change with:
+
+```bash
+clojure -M:gen           # rewrites the palette block + prints a WCAG report
+clojure -M:gen --check   # CI-style verification that the palette is current
+```
+
+Two derivations go beyond a straight token copy (both WCAG-AA-verified by
+the generator, which fails if they regress): `--muted` raises HIG
+secondary-label's alpha 0.6 → 0.73 (Apple's own value is ~3.4:1 on white,
+below AA for small text), and `--accent` keeps the x402 **brand cyan**
+rather than HIG's systemBlue tint — light `#0E7490` (the historical
+`#0891b2` darkened same-hue to pass AA on white), dark `#22C3E6`
+(unchanged). Hosts can still replace the whole stylesheet via
+`:branding :css`.
+
 ## Never fabricates
 
 Renders exactly what `:items` says — no placeholder stats, testimonials, or
@@ -78,8 +111,8 @@ markdown).
 ## Test
 
 ```bash
-clojure -M:test          # 16 tests
-clojure -M:lint           # clj-kondo
+clojure -M:test          # 21 tests
+clojure -M:lint           # clj-kondo (src + test + scripts)
 ```
 
 Apache-2.0.

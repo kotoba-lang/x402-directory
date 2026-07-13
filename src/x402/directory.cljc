@@ -49,77 +49,108 @@
          "</tbody></table></div>")
     empty-html))
 
-(def ^:private default-page-css
-  ":root{
-    --bg:#fff;--fg:#181818;--muted:#6b6b6f;--border:#e6e6e9;--surface:#f7f7f8;
-    --accent:#0891b2;--accent-soft:rgba(8,145,178,.08);--accent-border:rgba(8,145,178,.35);
-    --radius:10px
-  }
-  @media(prefers-color-scheme:dark){:root{
-    --bg:#0c0c0e;--fg:#eaeaec;--muted:#9a9a9f;--border:#2a2a2f;--surface:#18181b;
-    --accent:#22c3e6;--accent-soft:rgba(34,195,230,.1);--accent-border:rgba(34,195,230,.35)
-  }}
+;; ---------------------------------------------------------------------------
+;; Default CSS — kotoba-lang HIG design system (shitsuke.hig), zero-dep.
+;;
+;; The palette literal between the `;; gen:begin` / `;; gen:end` markers is
+;; GENERATED from kotoba-lang/shitsuke's `shitsuke.hig` semantic tokens (the
+;; HIG token SSoT: Apple HIG semantic colors light+dark, font stacks,
+;; hairline, radius scale) by scripts/gen_default_css.clj — do not hand-edit
+;; it. Regenerate with `clojure -M:gen`, verify with `clojure -M:gen --check`
+;; (the shitsuke version is pinned by :git/sha in deps.edn's :gen alias).
+;; The generated result is checked in so this namespace keeps ZERO runtime
+;; deps — it must run in any host, including zero-dep Workers.
+;;
+;; Two documented derivations beyond a straight token copy (rationale and
+;; the WCAG-AA math live in scripts/gen_default_css.clj):
+;; - --muted: HIG secondary-label ink with alpha raised until >= 4.5:1 over
+;;   both --bg and --surface (Apple's own 0.6 alpha is ~3.4:1 on white).
+;; - --accent: the x402 brand cyan (a product decision, not a HIG token) —
+;;   light #0E7490 (same hue as the historical #0891b2, darkened to pass AA
+;;   on the HIG white background), dark #22C3E6 (unchanged).
+
+(def ^:private default-palette-css
+  ;; gen:begin
+  ":root{--font-text:-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Hiragino Sans\", \"Noto Sans JP\", system-ui, sans-serif;--font-display:-apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"Hiragino Sans\", \"Noto Sans JP\", system-ui, sans-serif;--font-mono:ui-monospace, \"SF Mono\", SFMono-Regular, Menlo, Consolas, monospace;--bg:#FFFFFF;--fg:#000000;--muted:rgba(60,60,67,0.73);--border:rgba(60,60,67,0.36);--surface:#F2F2F7;--accent:#0E7490;--accent-soft:rgba(14,116,144,0.08);--accent-border:rgba(14,116,144,0.35);--hairline:0.5px;--radius:10px;--radius-xs:6px}@media(prefers-color-scheme:dark){:root{--bg:#000000;--fg:#FFFFFF;--muted:rgba(235,235,245,0.6);--border:rgba(84,84,88,0.65);--surface:#1C1C1E;--accent:#22C3E6;--accent-soft:rgba(34,195,230,0.1);--accent-border:rgba(34,195,230,0.35)}}"
+  ;; gen:end
+  )
+
+(def ^:private default-layout-css
+  ;; Layout/typography on the HIG scale: text styles (17px/22px body,
+  ;; 15px/20px subheadline, 13px/18px footnote, 12px/16px caption1,
+  ;; 11px/13px caption2, 20px/25px title3, 34px/41px large-title), spacing
+  ;; on the 4pt grid, hairline separators. Colors/fonts ONLY via the
+  ;; generated custom properties above — no raw hex here (enforced by
+  ;; `default-css-has-no-raw-hex-outside-generated-palette` in the tests).
+  "
   html{color-scheme:light dark}
   *{box-sizing:border-box}
-  body{font:16px/1.6 -apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;
-       max-width:820px;margin:0 auto;padding:3rem 1.5rem 4rem;
-       color:var(--fg);background:var(--bg)}
+  body{font:400 17px/22px var(--font-text);
+       max-width:820px;margin:0 auto;padding:48px 16px 64px;
+       color:var(--fg);background:var(--bg);-webkit-font-smoothing:antialiased}
   a{color:var(--accent)}
-  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-  .badge{display:inline-flex;align-items:center;gap:.45rem;font-size:.72rem;
+  code,pre{font-family:var(--font-mono)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .badge{display:inline-flex;align-items:center;gap:8px;font-size:12px;line-height:16px;
          font-weight:700;letter-spacing:.04em;text-transform:uppercase;
-         color:var(--accent);padding:.3rem .65rem;border:1px solid var(--accent-border);
-         border-radius:999px;margin-bottom:1rem}
-  .badge .dot{width:.4rem;height:.4rem;border-radius:50%;background:var(--accent)}
-  h1{font-size:2.1rem;letter-spacing:-.02em;margin:0 0 .4rem;line-height:1.15}
-  .tagline{font-size:1.05rem;color:var(--muted);margin:0 0 1.75rem;max-width:56ch}
+         color:var(--accent);padding:4px 12px;border:1px solid var(--accent-border);
+         border-radius:999px;margin-bottom:16px}
+  .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  h1{font:700 34px/41px var(--font-display);margin:0 0 8px}
+  .tagline{font-size:16px;line-height:21px;color:var(--muted);margin:0 0 28px;max-width:56ch}
   .pitch{background:var(--accent-soft);border:1px solid var(--accent-border);
-         border-radius:var(--radius);padding:1.1rem 1.35rem;margin-bottom:2.25rem;
-         font-size:.95rem;line-height:1.65}
-  nav.jump{display:flex;flex-wrap:wrap;gap:.35rem 1.4rem;margin-bottom:2.75rem;
-           padding-bottom:1.1rem;border-bottom:1px solid var(--border);font-size:.85rem}
+         border-radius:var(--radius);padding:16px 20px;margin-bottom:36px;
+         font-size:15px;line-height:20px}
+  nav.jump{display:flex;flex-wrap:wrap;gap:4px 20px;margin-bottom:44px;
+           padding-bottom:16px;border-bottom:var(--hairline) solid var(--border);
+           font-size:13px;line-height:18px}
   nav.jump a{color:var(--muted);font-weight:600;text-decoration:none}
   nav.jump a:hover{color:var(--accent)}
-  section{margin-bottom:3rem;scroll-margin-top:1.5rem}
-  h2{font-size:1.2rem;letter-spacing:-.01em;margin:0 0 1rem;
-     display:flex;align-items:baseline;gap:.5rem}
-  h2 .count{font-weight:400;color:var(--muted);font-size:.8rem}
-  .lede{color:var(--muted);font-size:.9rem;margin:-.5rem 0 1.25rem}
-  .table-wrap{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-  table{width:100%;border-collapse:collapse;font-size:.875rem}
-  th{text-align:left;font-weight:700;color:var(--muted);font-size:.7rem;
-     text-transform:uppercase;letter-spacing:.04em;padding:.65rem .9rem;
-     background:var(--surface);border-bottom:1px solid var(--border)}
-  td{padding:.8rem .9rem;border-bottom:1px solid var(--border);vertical-align:top}
+  section{margin-bottom:48px;scroll-margin-top:24px}
+  h2{font:600 20px/25px var(--font-display);margin:0 0 16px;
+     display:flex;align-items:baseline;gap:8px}
+  h2 .count{font-weight:400;color:var(--muted);font-size:13px;line-height:18px}
+  .lede{color:var(--muted);font-size:13px;line-height:18px;margin:-8px 0 20px}
+  .table-wrap{border:1px solid var(--border);border-radius:var(--radius);overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:15px;line-height:20px}
+  th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;line-height:16px;
+     text-transform:uppercase;letter-spacing:.04em;padding:8px 12px;
+     background:var(--surface);border-bottom:var(--hairline) solid var(--border)}
+  td{padding:12px;border-bottom:var(--hairline) solid var(--border);vertical-align:top}
   tr:last-child td{border-bottom:none}
-  .seller{font-weight:700}
+  .seller{font-weight:600}
   .price{font-variant-numeric:tabular-nums;white-space:nowrap}
-  .network{display:inline-block;margin-left:.45rem;font-size:.68rem;color:var(--muted);
-           background:var(--surface);border:1px solid var(--border);border-radius:4px;
-           padding:.05rem .4rem;text-transform:uppercase;letter-spacing:.02em}
-  code{font-size:.85em;background:var(--surface);border:1px solid var(--border);
-       border-radius:5px;padding:.15rem .4rem}
+  .network{display:inline-block;margin-left:8px;font-size:11px;line-height:13px;
+           color:var(--muted);background:var(--surface);border:1px solid var(--border);
+           border-radius:var(--radius-xs);padding:2px 6px;text-transform:uppercase;
+           letter-spacing:.02em}
+  code{font-size:13px;background:var(--surface);border:1px solid var(--border);
+       border-radius:var(--radius-xs);padding:2px 5px}
   pre{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-      padding:1rem 1.1rem;overflow-x:auto;font-size:.8rem;line-height:1.55;margin:.75rem 0}
-  pre code{background:none;border:none;padding:0}
-  .steps{list-style:none;margin:0;padding:0;counter-reset:step;display:grid;gap:1.5rem}
-  .steps>li{position:relative;padding-left:2.4rem}
-  .steps>li::before{counter-increment:step;content:counter(step);position:absolute;left:0;top:.05rem;
-                     width:1.7rem;height:1.7rem;border-radius:50%;background:var(--accent-soft);
-                     border:1px solid var(--accent-border);color:var(--accent);font-weight:700;
-                     font-size:.8rem;display:flex;align-items:center;justify-content:center}
-  .steps p{margin:.35rem 0}
-  .api-list{list-style:none;margin:0;padding:0;display:grid;gap:.55rem}
-  .api-list li{border:1px solid var(--border);border-radius:8px;padding:.65rem .9rem;
-               font-size:.83rem;display:flex;flex-direction:column;gap:.15rem}
+      padding:16px;overflow-x:auto;font-size:13px;line-height:18px;margin:12px 0}
+  pre code{background:none;border:none;padding:0;font-size:inherit}
+  .steps{list-style:none;margin:0;padding:0;counter-reset:step;display:grid;gap:24px}
+  .steps>li{position:relative;padding-left:40px;min-width:0}
+  .steps>li::before{counter-increment:step;content:counter(step);position:absolute;left:0;top:0;
+                     width:28px;height:28px;border-radius:50%;background:var(--accent-soft);
+                     border:1px solid var(--accent-border);color:var(--accent);font-weight:600;
+                     font-size:13px;display:flex;align-items:center;justify-content:center}
+  .steps p{margin:4px 0}
+  .api-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+  .api-list li{border:1px solid var(--border);border-radius:var(--radius-xs);padding:8px 12px;
+               font-size:13px;line-height:18px;display:flex;flex-direction:column;gap:4px;
+               min-width:0}
   .api-list li>span{color:var(--muted)}
   .empty{color:var(--muted)}
-  footer{margin-top:1rem;padding-top:1.5rem;border-top:1px solid var(--border)}
-  .links{display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:.9rem}
-  .links a{font-size:.78rem;font-weight:600;color:var(--fg);text-decoration:none;
-           padding:.35rem .75rem;border:1px solid var(--border);border-radius:999px}
+  footer{margin-top:16px;padding-top:24px;border-top:var(--hairline) solid var(--border)}
+  .links{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .links a{font-size:13px;line-height:18px;font-weight:600;color:var(--fg);text-decoration:none;
+           padding:6px 12px;border:1px solid var(--border);border-radius:999px}
   .links a:hover{border-color:var(--accent);color:var(--accent)}
-  .meta{font-size:.78rem;color:var(--muted)}")
+  .meta{font-size:13px;line-height:18px;color:var(--muted)}")
+
+(def ^:private default-page-css
+  (str default-palette-css default-layout-css))
 
 (def ^:private default-branding
   {:title "x402 facilitator"
