@@ -116,6 +116,69 @@
     (is (< (.indexOf html "id=\"resources\"") (.indexOf html "id=\"quickstart\"")))
     (is (< (.indexOf html "id=\"quickstart\"") (.indexOf html "<footer>")))))
 
+;; ---- default CSS: kotoba-lang HIG design system ---------------------------
+;; The palette block is GENERATED from shitsuke.hig (see
+;; scripts/gen_default_css.clj; `clojure -M:gen --check` verifies it is
+;; current). These tests pin the documented HIG-derived values so a drive-by
+;; hand edit of the generated literal fails loudly.
+
+(defn- default-css []
+  (let [html (directory/page {:origin "https://example.x402" :items []})
+        style-open (+ (.indexOf html "<style>") (count "<style>"))
+        style-close (.indexOf html "</style>")]
+    (subs html style-open style-close)))
+
+(deftest default-css-palette-is-the-hig-derived-set
+  (let [css (default-css)]
+    (testing "light: HIG semantic colors (shitsuke.hig, light appearance)"
+      (is (str/includes? css "--bg:#FFFFFF"))            ; system-background
+      (is (str/includes? css "--fg:#000000"))            ; label
+      (is (str/includes? css "--muted:rgba(60,60,67,0.73"))  ; secondary-label ink, alpha raised 0.6->0.73 for WCAG AA
+      (is (str/includes? css "--border:rgba(60,60,67,0.36")) ; separator
+      (is (str/includes? css "--surface:#F2F2F7")))      ; secondary-system-background
+    (testing "dark: HIG semantic colors (shitsuke.hig, dark appearance)"
+      (is (str/includes? css "--bg:#000000"))
+      (is (str/includes? css "--fg:#FFFFFF"))
+      (is (str/includes? css "--muted:rgba(235,235,245,0.6"))
+      (is (str/includes? css "--border:rgba(84,84,88,0.65"))
+      (is (str/includes? css "--surface:#1C1C1E")))
+    (testing "accent stays the x402 brand cyan (product decision): light
+              darkened same-hue to pass AA on HIG white, dark unchanged"
+      (is (str/includes? css "--accent:#0E7490"))
+      (is (str/includes? css "--accent:#22C3E6")))
+    (testing "dark mode still via prefers-color-scheme"
+      (is (str/includes? css "@media(prefers-color-scheme:dark)")))
+    (testing "HIG hairline + radius tokens"
+      (is (str/includes? css "--hairline:0.5px"))
+      (is (str/includes? css "--radius:10px"))
+      (is (str/includes? css "--radius-xs:6px")))))
+
+(deftest default-css-uses-hig-typography
+  (let [css (default-css)]
+    (testing "HIG font stacks as custom properties (SF Pro Text/Display, SF Mono)"
+      (is (str/includes? css "--font-text:-apple-system"))
+      (is (str/includes? css "\"SF Pro Text\""))
+      (is (str/includes? css "\"SF Pro Display\""))
+      (is (str/includes? css "--font-mono:ui-monospace"))
+      (is (str/includes? css "\"SF Mono\"")))
+    (testing "HIG text-style scale: 17px body, 34px large-title, 13px footnote"
+      (is (str/includes? css "17px/22px var(--font-text)"))
+      (is (str/includes? css "34px/41px var(--font-display)"))
+      (is (str/includes? css "font-size:13px")))))
+
+(deftest default-css-has-no-raw-hex-outside-generated-palette
+  (testing "every color in the hand-written layout CSS must flow through the
+            generated custom properties -- no raw hex or rgb() literals"
+    (let [css (default-css)
+          ;; the generated palette ends at the close of the dark @media block
+          palette-end (+ (.indexOf css "}}") 2)
+          layout (subs css palette-end)]
+      (is (pos? palette-end))
+      (is (not (str/includes? layout "#"))
+          "raw #hex found outside the generated palette block")
+      (is (not (re-find #"rgba?\(" layout))
+          "raw rgb()/rgba() found outside the generated palette block"))))
+
 ;; ---- llms.txt ------------------------------------------------------------
 
 (deftest llms-txt-renders-title-summary-and-sellers
