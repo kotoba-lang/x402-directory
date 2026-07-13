@@ -32,12 +32,15 @@
       (str/replace "\"" "&quot;")))
 
 (defn- seller-row [{:keys [seller method path-prefix price description]}]
+  ;; data-label feeds the <=480px stacked-card layout (the media query in
+  ;; default-layout-css turns each row into a labeled card); the seller cell
+  ;; is the card's title, so it carries no label.
   (str "<tr>"
        "<td class=\"seller\">" (escape-html seller) "</td>"
-       "<td><code>" (escape-html method) " " (escape-html path-prefix) "</code></td>"
-       "<td class=\"price\">$" (escape-html (:usd price)) " " (escape-html (:asset price))
+       "<td data-label=\"Gated resource\"><code>" (escape-html method) " " (escape-html path-prefix) "</code></td>"
+       "<td class=\"price\" data-label=\"Price\">$" (escape-html (:usd price)) " " (escape-html (:asset price))
        "<span class=\"network\">" (escape-html (:network price)) "</span></td>"
-       "<td>" (escape-html (or description "—")) "</td>"
+       "<td data-label=\"Description\">" (escape-html (or description "—")) "</td>"
        "</tr>"))
 
 (defn- sellers-table [items empty-html]
@@ -84,9 +87,14 @@
   ;; `default-css-has-no-raw-hex-outside-generated-palette` in the tests).
   "
   html{color-scheme:light dark}
+  html,body{overflow-x:clip}
   *{box-sizing:border-box}
   body{font:400 17px/22px var(--font-text);
-       max-width:820px;margin:0 auto;padding:48px 16px 64px;
+       max-width:820px;margin:0 auto;
+       padding:48px
+               max(16px, env(safe-area-inset-right))
+               calc(64px + env(safe-area-inset-bottom))
+               max(16px, env(safe-area-inset-left));
        color:var(--fg);background:var(--bg);-webkit-font-smoothing:antialiased}
   a{color:var(--accent)}
   code,pre{font-family:var(--font-mono)}
@@ -147,10 +155,34 @@
   .links a{font-size:13px;line-height:18px;font-weight:600;color:var(--fg);text-decoration:none;
            padding:6px 12px;border:1px solid var(--border);border-radius:999px}
   .links a:hover{border-color:var(--accent);color:var(--accent)}
-  .meta{font-size:13px;line-height:18px;color:var(--muted)}")
+  .meta{font-size:13px;line-height:18px;color:var(--muted)}
+  @media(max-width:480px){
+    body{padding-top:32px}
+    h1{font-size:28px;line-height:34px}
+    .table-wrap{border:none;border-radius:0;overflow-x:visible}
+    .table-wrap table,.table-wrap tbody,.table-wrap tr,.table-wrap td{display:block;width:100%}
+    .table-wrap thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+    .table-wrap tr{padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px}
+    .table-wrap tr:last-child{margin-bottom:0}
+    .table-wrap td{padding:0;border-bottom:none}
+    .table-wrap td.seller{font-size:17px;line-height:22px}
+    .table-wrap td[data-label]::before{content:attr(data-label);display:block;
+      font-size:11px;line-height:13px;font-weight:600;color:var(--muted);
+      text-transform:uppercase;letter-spacing:.04em;margin-top:10px}
+    .price{white-space:normal}
+  }")
 
 (def ^:private default-page-css
   (str default-palette-css default-layout-css))
+
+(def ^:private default-theme-colors
+  "The media-gated `<meta name=theme-color>` pair, derived from the generated
+  palette's own `--bg` values (first occurrence = light `:root` block, second
+  = dark `@media` block) so the browser chrome can never drift from the page
+  background. Overridable per-page via `:branding {:theme-color ...}` — a
+  caller replacing `:css` should replace this too."
+  (let [bgs (map second (re-seq #"--bg:([^;}]+)" default-palette-css))]
+    {:light (first bgs) :dark (second bgs)}))
 
 (def ^:private default-branding
   {:title "x402 facilitator"
@@ -165,7 +197,8 @@
    :extra-links [{:href "/catalog" :label "Catalog (JSON)"}
                  {:href "/llms.txt" :label "llms.txt"}
                  {:href "/health" :label "Health"}]
-   :css default-page-css})
+   :css default-page-css
+   :theme-color default-theme-colors})
 
 (defn page
   "Render a full HTML directory page for an x402 facilitator's catalog.
@@ -179,7 +212,12 @@
    - :branding — optional overrides merged over `default-branding`:
                  {:title :page-title :tagline :meta-description :badge-label
                   :pitch-html :empty-html :nav-links :extra-sections-html
-                  :extra-links :css}.
+                  :extra-links :css :theme-color}.
+                 `:theme-color` is `{:light \"#...\" :dark \"#...\"}` for the
+                 media-gated `<meta name=\"theme-color\">` pair (defaults to
+                 the generated palette's own `--bg` values; a caller
+                 replacing `:css` should replace this too, and either side
+                 nil omits that meta).
                  `:title` is the visible `<h1>`; `:page-title` overrides the
                  `<title>` tag (falls back to `:title` when nil) — a longer,
                  more descriptive `<title>` is common even when the on-page
@@ -200,15 +238,21 @@
   [{:keys [origin items branding]}]
   (let [{:keys [title page-title tagline meta-description badge-label
                 pitch-html empty-html nav-links extra-sections-html
-                extra-links css]}
+                extra-links css theme-color]}
         (merge default-branding branding)
         page-title (or page-title title)
         meta-description (or meta-description tagline)]
     (str
      "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">"
-     "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+     "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">"
      "<title>" (escape-html page-title) "</title>"
      "<meta name=\"description\" content=\"" (escape-html meta-description) "\">"
+     (when (:light theme-color)
+       (str "<meta name=\"theme-color\" media=\"(prefers-color-scheme: light)\" content=\""
+            (escape-html (:light theme-color)) "\">"))
+     (when (:dark theme-color)
+       (str "<meta name=\"theme-color\" media=\"(prefers-color-scheme: dark)\" content=\""
+            (escape-html (:dark theme-color)) "\">"))
      "<style>" css "</style></head><body>"
      "<header>"
      (when badge-label

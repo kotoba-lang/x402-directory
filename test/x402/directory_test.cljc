@@ -116,6 +116,32 @@
     (is (< (.indexOf html "id=\"resources\"") (.indexOf html "id=\"quickstart\"")))
     (is (< (.indexOf html "id=\"quickstart\"") (.indexOf html "<footer>")))))
 
+;; ---- mobile/page axes: viewport-fit, theme-color, safe-area, breakpoint ----
+
+(deftest page-covers-the-mobile-page-axes
+  (testing "viewport-fit=cover + media-gated theme-color pair (from the
+            generated palette's --bg) + safe-area padding + overflow-x guard
+            + a <=480px table->stack breakpoint"
+    (let [html (directory/page {:origin "https://example.x402" :items sample-items})]
+      (is (str/includes? html "viewport-fit=cover"))
+      (is (str/includes? html (str "<meta name=\"theme-color\" media=\"(prefers-color-scheme: light)\""
+                                   " content=\"#FFFFFF\">")))
+      (is (str/includes? html (str "<meta name=\"theme-color\" media=\"(prefers-color-scheme: dark)\""
+                                   " content=\"#000000\">")))
+      (is (<= 2 (count (distinct (re-seq #"safe-area-inset-\w+" html)))))
+      (is (str/includes? html "overflow-x:clip"))
+      (is (str/includes? html "@media(max-width:480px)"))
+      (is (str/includes? html "data-label=\"Price\"")))))
+
+(deftest page-theme-color-is-overridable-and-omittable
+  (let [html (directory/page {:origin "https://example.x402" :items []
+                              :branding {:theme-color {:light "#ABCDEF" :dark nil}}})]
+    (is (str/includes? html "content=\"#ABCDEF\""))
+    (is (not (str/includes? html "prefers-color-scheme: dark)\" content="))))
+  (let [html (directory/page {:origin "https://example.x402" :items []
+                              :branding {:theme-color nil}})]
+    (is (not (str/includes? html "theme-color")))))
+
 ;; ---- default CSS: kotoba-lang HIG design system ---------------------------
 ;; The palette block is GENERATED from shitsuke.hig (see
 ;; scripts/gen_default_css.clj; `clojure -M:gen --check` verifies it is
