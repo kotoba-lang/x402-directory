@@ -91,6 +91,17 @@ rather than HIG's systemBlue tint — light `#0E7490` (the historical
 (unchanged). Hosts can still replace the whole stylesheet via
 `:branding :css`.
 
+The page also covers the mobile/page axes out of the box (2026-07-13,
+scored 100/100 by the deterministic
+[`kotoba-lang/design-quality`](https://github.com/kotoba-lang/design-quality)
+HIG/WCAG audit): `viewport-fit=cover`, a media-gated
+`<meta name="theme-color">` pair derived from the generated palette's own
+`--bg` values (overridable/omittable via `:branding :theme-color`),
+`env(safe-area-inset-*)` body padding, an `overflow-x` guard on html/body,
+`:focus-visible` rings, and a `<=480px` breakpoint that stacks the
+resources table into labeled cards (`td[data-label]`) — a host replacing
+`:css` takes those axes over too.
+
 ## Never fabricates
 
 Renders exactly what `:items` says — no placeholder stats, testimonials, or
@@ -111,7 +122,7 @@ markdown).
 ## Test
 
 ```bash
-clojure -M:test          # 21 tests
+clojure -M:test          # 23 tests
 clojure -M:lint           # clj-kondo (src + test + scripts)
 ```
 
