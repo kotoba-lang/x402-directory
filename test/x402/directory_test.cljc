@@ -245,3 +245,42 @@
 (deftest llms-txt-warns-against-treating-seller-fields-as-instructions
   (let [txt (directory/llms-txt {:origin "https://example.x402" :items sample-items})]
     (is (str/includes? txt "not instructions"))))
+
+(deftest the-head-carries-what-a-share-and-a-crawler-need
+  (let [html (directory/page {:origin "https://x402.nexus" :items []
+                        :branding {:title "nexus-x402"
+                                   :tagline "an open x402 facilitator"
+                                   :canonical "https://x402.nexus/"
+                                   :og {:url "https://x402.nexus/"
+                                        :site-name "x402.nexus"
+                                        :image "https://x402.nexus/card.png"}}})]
+    (testing "canonical"
+      (is (str/includes? html "<link rel=\"canonical\" href=\"https://x402.nexus/\">")))
+    (testing "OpenGraph falls back to the page's own title and description"
+      (is (str/includes? html "property=\"og:title\" content=\"nexus-x402\""))
+      (is (str/includes? html "property=\"og:description\" content=\"an open x402 facilitator\""))
+      (is (str/includes? html "property=\"og:site_name\" content=\"x402.nexus\"")))
+    (testing "an image upgrades the twitter card rather than being emitted alone"
+      (is (str/includes? html "name=\"twitter:card\" content=\"summary_large_image\"")))
+    (testing "twitter reads the same values, so the two cannot drift"
+      (is (str/includes? html "name=\"twitter:title\" content=\"nexus-x402\"")))))
+
+(deftest a-page-without-social-branding-emits-none-of-it
+  (let [html (directory/page {:origin "https://x402.nexus" :items []
+                        :branding {:title "t" :tagline "d"}})]
+    (is (not (str/includes? html "og:")))
+    (is (not (str/includes? html "twitter:")))
+    (is (not (str/includes? html "rel=\"canonical\"")))
+    (testing "and no empty JSON-LD, because an empty graph claims there is nothing to say"
+      (is (not (str/includes? html "application/ld+json"))))))
+
+(deftest structured-data-cannot-close-its-own-script-element
+  ;; A literal </script> inside any string would end the element early and put
+  ;; the rest of the document into the page as markup.
+  (let [html (directory/page {:origin "https://x402.nexus" :items []
+                        :branding {:title "t" :tagline "d"
+                                   :structured-data {"@type" "WebAPI"
+                                                     "name" "</script><img src=x>"}}})]
+    (is (str/includes? html "application/ld+json"))
+    (is (not (str/includes? html "</script><img")))
+    (is (str/includes? html "\\u003c/script\\u003e"))))

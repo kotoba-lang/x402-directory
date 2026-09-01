@@ -190,6 +190,9 @@
    :badge-label "Live"
    :page-title nil
    :meta-description nil
+   :canonical nil
+   :og nil
+   :structured-data nil
    :pitch-html nil
    :empty-html "<p class=\"empty\">No sellers registered yet.</p>"
    :nav-links []
@@ -199,6 +202,79 @@
                  {:href "/health" :label "Health"}]
    :css default-page-css
    :theme-color default-theme-colors})
+
+(defn- social-head
+  "canonical, OpenGraph and Twitter tags.
+
+  A facilitator's page is a thing agents and people are pointed AT -- from a
+  chat, a card, a search result -- and without these a share renders as a bare
+  URL and a crawler has no title but the one in <title>. `og` overrides
+  anything it names; what it omits falls back to the page's own title and
+  description, so the common case is passing `{:url ... :image ...}` and
+  nothing else.
+
+  Twitter's tags are emitted from the same values rather than taken
+  separately: two sources for one sentence is two places for it to drift."
+  [{:keys [canonical og title description]}]
+  (let [og-title (or (:title og) title)
+        og-desc (or (:description og) description)
+        url (or (:url og) canonical)]
+    (str
+     (when canonical
+       (str "<link rel=\"canonical\" href=\"" (escape-html canonical) "\">"))
+     (when og
+       (str
+        "<meta property=\"og:type\" content=\"" (escape-html (or (:type og) "website")) "\">"
+        "<meta property=\"og:title\" content=\"" (escape-html og-title) "\">"
+        "<meta property=\"og:description\" content=\"" (escape-html og-desc) "\">"
+        (when url (str "<meta property=\"og:url\" content=\"" (escape-html url) "\">"))
+        (when (:site-name og)
+          (str "<meta property=\"og:site_name\" content=\"" (escape-html (:site-name og)) "\">"))
+        (when (:image og)
+          (str "<meta property=\"og:image\" content=\"" (escape-html (:image og)) "\">"))
+        "<meta name=\"twitter:card\" content=\""
+        (escape-html (if (:image og) "summary_large_image" "summary")) "\">"
+        "<meta name=\"twitter:title\" content=\"" (escape-html og-title) "\">"
+        "<meta name=\"twitter:description\" content=\"" (escape-html og-desc) "\">"
+        (when (:image og)
+          (str "<meta name=\"twitter:image\" content=\"" (escape-html (:image og)) "\">")))))))
+
+(defn- json-escape [s]
+  (-> (str s)
+      (str/replace "\\" "\\\\")
+      (str/replace "\"" "\\\"")
+      (str/replace "<" "\\u003c")
+      (str/replace ">" "\\u003e")
+      (str/replace "&" "\\u0026")))
+
+(defn- ->json
+  "The smallest JSON writer that covers a JSON-LD document.
+
+  `<` `>` `&` are escaped as \\u00xx rather than left raw: a JSON-LD block
+  sits inside <script>, where a literal </script> in any string would end the
+  element early and put the rest of the document into the page as markup."
+  [v]
+  (cond
+    (map? v) (str "{" (str/join "," (map (fn [[k val]]
+                                           (str "\"" (json-escape (name k)) "\":" (->json val)))
+                                         v)) "}")
+    (sequential? v) (str "[" (str/join "," (map ->json v)) "]")
+    (string? v) (str "\"" (json-escape v) "\"")
+    (number? v) (str v)
+    (boolean? v) (str v)
+    (keyword? v) (str "\"" (json-escape (name v)) "\"")
+    (nil? v) "null"
+    :else (str "\"" (json-escape (str v)) "\"")))
+
+(defn- structured-data-head
+  "A JSON-LD block, or nothing.
+
+  Search engines and agent crawlers read structured data where they will not
+  read prose. `nil` emits nothing rather than an empty <script>, because an
+  empty graph is a claim that there is nothing to say."
+  [data]
+  (when (seq data)
+    (str "<script type=\"application/ld+json\">" (->json data) "</script>")))
 
 (defn page
   "Render a full HTML directory page for an x402 facilitator's catalog.
@@ -237,6 +313,8 @@
                  wants that isn't generic enough for this library itself."
   [{:keys [origin items branding]}]
   (let [{:keys [title page-title tagline meta-description badge-label
+                canonical og structured-data
+
                 pitch-html empty-html nav-links extra-sections-html
                 extra-links css theme-color]}
         (merge default-branding branding)
@@ -253,6 +331,9 @@
      (when (:dark theme-color)
        (str "<meta name=\"theme-color\" media=\"(prefers-color-scheme: dark)\" content=\""
             (escape-html (:dark theme-color)) "\">"))
+     (social-head {:canonical canonical :og og
+                   :title page-title :description meta-description})
+     (structured-data-head structured-data)
      "<style>" css "</style></head><body>"
      "<header>"
      (when badge-label
