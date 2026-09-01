@@ -288,7 +288,14 @@
    - :branding — optional overrides merged over `default-branding`:
                  {:title :page-title :tagline :meta-description :badge-label
                   :pitch-html :empty-html :nav-links :extra-sections-html
-                  :extra-links :css :theme-color}.
+                  :extra-links :css :theme-color
+                  :canonical :og :structured-data}.
+                 `:canonical` is an absolute URL for a canonical link element.
+                 `:og` is `{:url :image :site-name :type :title :description}`
+                 for OpenGraph and Twitter; anything omitted falls back to the
+                 page's own title and description.
+                 `:structured-data` is a JSON-LD map rendered into a script
+                 element of type application/ld+json.
                  `:theme-color` is `{:light \"#...\" :dark \"#...\"}` for the
                  media-gated `<meta name=\"theme-color\">` pair (defaults to
                  the generated palette's own `--bg` values; a caller
