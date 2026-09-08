@@ -22,7 +22,7 @@
   no placeholder stats, testimonials, or customer counts. An empty registry
   renders an honest empty state, not a lie. This constraint is deliberate
   and load-bearing: a directory page's only value is that it's true."
-  (:require [clojure.string :as str]))
+  (:require [kotoba.lang.text :as str]))
 
 (defn- escape-html [s]
   (-> (str s)
