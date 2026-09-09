@@ -284,3 +284,53 @@
     (is (str/includes? html "application/ld+json"))
     (is (not (str/includes? html "</script><img")))
     (is (str/includes? html "\\u003c/script\\u003e"))))
+
+;; ── :pre-sections-html ─────────────────────────────────────────────────────
+
+(defn- at
+  "Where `needle` occurs, or nil when it does not.
+
+  NOT `.indexOf` raw. The first version of the ordering test below compared
+  `.indexOf` values directly, and `.indexOf` answers -1 for absent -- so
+  `(< -1 n)` is true and the assertion was satisfied by the section being
+  MISSING. Measured: deleting the emission entirely left the test green. nil
+  makes the absent case fail at the comparison instead of passing through it."
+  [html needle]
+  (let [i (.indexOf html needle)] (when (nat-int? i) i)))
+
+(deftest pre-sections-render-before-the-resources-table
+  (testing "a facilitator whose visitors come to integrate needs its quickstart
+            above a long inventory; below it, the first code on the page is
+            thousands of pixels down"
+    (let [html (directory/page {:origin "https://f.example"
+                                :items [{:seller "a" :method "GET" :path-prefix "/x"
+                                         :price {:usd "0.01" :asset "USDC" :network "base"}}]
+                                :branding {:pre-sections-html ["<section id=\"start\">START</section>"]
+                                           :extra-sections-html ["<section id=\"after\">AFTER</section>"]}})
+          start (at html "START")
+          table (at html "id=\"resources\"")
+          after (at html "AFTER")]
+      (is (some? start) "the pre-section is rendered at all")
+      (is (some? table))
+      (is (some? after))
+      (is (< start table) "pre-sections come before the table")
+      (is (< table after)
+          "and extra-sections still come after it -- this key ADDS a position,
+           it does not move the existing one"))))
+
+(deftest pre-sections-are-omitted-when-absent
+  (let [html (directory/page {:origin "https://f.example" :items []})]
+    (is (not (str/includes? html "START")))
+    (is (str/includes? html "id=\"resources\"")
+        "the default page is unchanged")))
+
+(deftest footer-note-renders-under-the-origin-line
+  (testing "carried back from nexus-x402's vendored copy, which had it while
+            this library did not"
+    (let [html (directory/page {:origin "https://f.example" :items []
+                          :branding {:footer-note "operated by someone"}})]
+      (is (str/includes? html "operated by someone"))
+      (is (< (.indexOf html "Origin:") (.indexOf html "operated by someone"))))
+    (is (not (str/includes?
+              (directory/page {:origin "https://f.example" :items []}) "<p class=\"meta\"></p>"))
+        "nil omits it rather than emitting an empty paragraph")))
