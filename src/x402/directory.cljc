@@ -196,6 +196,8 @@
    :pitch-html nil
    :empty-html "<p class=\"empty\">No sellers registered yet.</p>"
    :nav-links []
+   :footer-note nil
+   :pre-sections-html []
    :extra-sections-html []
    :extra-links [{:href "/catalog" :label "Catalog (JSON)"}
                  {:href "/llms.txt" :label "llms.txt"}
@@ -288,7 +290,7 @@
    - :branding — optional overrides merged over `default-branding`:
                  {:title :page-title :tagline :meta-description :badge-label
                   :pitch-html :empty-html :nav-links :extra-sections-html
-                  :extra-links :css :theme-color
+                  :extra-links :footer-note :css :theme-color
                   :canonical :og :structured-data}.
                  `:canonical` is an absolute URL for a canonical link element.
                  `:og` is `{:url :image :site-name :type :title :description}`
@@ -312,18 +314,32 @@
                  entirely. `:badge-label` nil omits the status badge.
                  `:nav-links` (a seq of {:href :label}) adds a jump-nav
                  below the pitch; omitted (default) when empty.
+                 `:pre-sections-html` is a seq of raw HTML strings rendered
+                 BEFORE the resources table, for a facilitator whose visitors
+                 come to integrate rather than to browse: a quickstart is worth
+                 more above a 31-row inventory than below it, and only the
+                 operator knows which of the two its audience arrived for.
                  `:extra-sections-html` is a seq of raw HTML strings
                  (each expected to be a self-contained `<section>...
                  </section>`) rendered between the resources table and the
                  footer — the extension point for a quickstart, an API
                  reference list, or anything else a specific facilitator
-                 wants that isn't generic enough for this library itself."
+                 wants that isn't generic enough for this library itself.
+                 `:footer-note` is optional escaped plain text rendered as a
+                 second `<p class=\"meta\">` under the origin line — the hook
+                 for an operator identity line. nil omits it.
+
+                 This key existed in nexus-x402's vendored copy of this file
+                 and never here, so the copy was AHEAD of its own upstream --
+                 the shape a vendored library drifts into when a consumer edits
+                 it in place. Carried back with the pre-sections hook so the
+                 two are one file again."
   [{:keys [origin items branding]}]
   (let [{:keys [title page-title tagline meta-description badge-label
                 canonical og structured-data
 
-                pitch-html empty-html nav-links extra-sections-html
-                extra-links css theme-color]}
+                pitch-html empty-html nav-links pre-sections-html extra-sections-html
+                extra-links footer-note css theme-color]}
         (merge default-branding branding)
         page-title (or page-title title)
         meta-description (or meta-description tagline)]
@@ -355,6 +371,7 @@
             (apply str (for [{:keys [href label]} nav-links]
                          (str "<a href=\"" (escape-html href) "\">" (escape-html label) "</a>")))
             "</nav>"))
+     (apply str pre-sections-html)
      "<section id=\"resources\">"
      "<h2>Gated resources <span class=\"count\">(" (count items) ")</span></h2>"
      (sellers-table items empty-html)
@@ -366,6 +383,8 @@
                   (str "<a href=\"" (escape-html href) "\">" (escape-html label) "</a>")))
      "</div>"
      "<p class=\"meta\">Origin: " (escape-html origin) "</p>"
+     (when footer-note
+       (str "<p class=\"meta\">" (escape-html footer-note) "</p>"))
      "</footer>"
      "</body></html>")))
 
