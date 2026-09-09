@@ -29,7 +29,7 @@
   Usage:
     clojure -M:gen           # regenerate the palette in directory.cljc
     clojure -M:gen --check   # verify the checked-in palette is current"
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [shitsuke.hig :as hig]))
 
 ;; ---------------------------------------------------------------------------
