@@ -144,7 +144,7 @@
 
 ;; ---- default CSS: kotoba-lang HIG design system ---------------------------
 ;; The palette block is GENERATED from shitsuke.hig (see
-;; scripts/gen_default_css.clj; `clojure -M:gen --check` verifies it is
+;; scripts/gen_default_css.cljk; `clojure -M:gen --check` verifies it is
 ;; current). These tests pin the documented HIG-derived values so a drive-by
 ;; hand edit of the generated literal fails loudly.
 

@@ -58,14 +58,14 @@
 ;; The palette literal between the `;; gen:begin` / `;; gen:end` markers is
 ;; GENERATED from kotoba-lang/shitsuke's `shitsuke.hig` semantic tokens (the
 ;; HIG token SSoT: Apple HIG semantic colors light+dark, font stacks,
-;; hairline, radius scale) by scripts/gen_default_css.clj — do not hand-edit
+;; hairline, radius scale) by scripts/gen_default_css.cljk — do not hand-edit
 ;; it. Regenerate with `clojure -M:gen`, verify with `clojure -M:gen --check`
 ;; (the shitsuke version is pinned by :git/sha in deps.edn's :gen alias).
 ;; The generated result is checked in so this namespace keeps ZERO runtime
 ;; deps — it must run in any host, including zero-dep Workers.
 ;;
 ;; Two documented derivations beyond a straight token copy (rationale and
-;; the WCAG-AA math live in scripts/gen_default_css.clj):
+;; the WCAG-AA math live in scripts/gen_default_css.cljk):
 ;; - --muted: HIG secondary-label ink with alpha raised until >= 4.5:1 over
 ;;   both --bg and --surface (Apple's own 0.6 alpha is ~3.4:1 on white).
 ;; - --accent: the x402 brand cyan (a product decision, not a HIG token) —

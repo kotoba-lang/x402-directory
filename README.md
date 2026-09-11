@@ -71,7 +71,7 @@ large-title, ...) and 4pt-grid spacing, with zero raw hex outside the
 generated palette block (test-enforced).
 
 The generated result is **checked in** (`default-palette-css` in
-`src/x402/directory.cljc`, between the `;; gen:begin`/`;; gen:end`
+`src/x402/directory.cljk`, between the `;; gen:begin`/`;; gen:end`
 markers), so the library itself keeps **zero runtime deps** — shitsuke is a
 dev-time dependency of the generator only, pinned by `:git/sha` in
 `deps.edn`'s `:gen` alias (currently `35099a7`). Regenerate after a
