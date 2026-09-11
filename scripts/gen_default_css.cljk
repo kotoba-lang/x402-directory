@@ -5,7 +5,7 @@
   block from kotoba-lang/shitsuke's `shitsuke.hig` semantic tokens (the
   kotoba-lang HIG design-system SSoT: Apple HIG semantic colors light+dark,
   font stacks, hairline, radius scale) and splices the result into
-  `src/x402/directory.cljc` between the `;; gen:begin` / `;; gen:end`
+  `src/x402/directory.cljk` between the `;; gen:begin` / `;; gen:end`
   markers. The generated literal is CHECKED IN so the library itself keeps
   ZERO runtime deps (it must run in any host, including zero-dep Workers) —
   shitsuke is a dev-time dependency of this script only, pinned by :git/sha
@@ -169,9 +169,9 @@
          "}}")))
 
 ;; ---------------------------------------------------------------------------
-;; Splice into src/x402/directory.cljc
+;; Splice into src/x402/directory.cljk
 
-(def ^:private target "src/x402/directory.cljc")
+(def ^:private target "src/x402/directory.cljk")
 (def ^:private begin-marker ";; gen:begin")
 (def ^:private end-marker ";; gen:end")
 
