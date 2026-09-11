@@ -59,7 +59,7 @@
 ;; GENERATED from kotoba-lang/shitsuke's `shitsuke.hig` semantic tokens (the
 ;; HIG token SSoT: Apple HIG semantic colors light+dark, font stacks,
 ;; hairline, radius scale) by scripts/gen_default_css.cljk — do not hand-edit
-;; it. Regenerate with `clojure -M:gen`, verify with `clojure -M:gen --check`
+;; it. Regenerate with `kbb -M:gen`, verify with `kbb -M:gen --check`
 ;; (the shitsuke version is pinned by :git/sha in deps.edn's :gen alias).
 ;; The generated result is checked in so this namespace keeps ZERO runtime
 ;; deps — it must run in any host, including zero-dep Workers.

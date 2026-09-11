@@ -78,8 +78,8 @@ dev-time dependency of the generator only, pinned by `:git/sha` in
 shitsuke token change with:
 
 ```bash
-clojure -M:gen           # rewrites the palette block + prints a WCAG report
-clojure -M:gen --check   # CI-style verification that the palette is current
+kbb -M:gen           # rewrites the palette block + prints a WCAG report
+kbb -M:gen --check   # CI-style verification that the palette is current
 ```
 
 Two derivations go beyond a straight token copy (both WCAG-AA-verified by
@@ -122,8 +122,8 @@ markdown).
 ## Test
 
 ```bash
-clojure -M:test          # 23 tests
-clojure -M:lint           # clj-kondo (src + test + scripts)
+kbb -M:test          # 23 tests
+kbb -M:lint           # clj-kondo (src + test + scripts)
 ```
 
 Apache-2.0.

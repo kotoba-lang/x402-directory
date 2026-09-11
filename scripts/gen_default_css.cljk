@@ -27,8 +27,8 @@
     generator FAILS if either stops meeting 4.5:1 against --bg/--surface.
 
   Usage:
-    clojure -M:gen           # regenerate the palette in directory.cljc
-    clojure -M:gen --check   # verify the checked-in palette is current"
+    kbb -M:gen           # regenerate the palette in directory.cljc
+    kbb -M:gen --check   # verify the checked-in palette is current"
   (:require [kotoba.lang.text :as str]
             [shitsuke.hig :as hig]))
 
@@ -199,7 +199,7 @@
     (if (some #{"--check"} args)
       (if (= old new)
         (println "OK: checked-in palette matches shitsuke.hig")
-        (do (println "STALE: checked-in palette differs — run `clojure -M:gen`")
+        (do (println "STALE: checked-in palette differs — run `kbb -M:gen`")
             (System/exit 1)))
       (do (spit target new)
           (println (str "wrote " target))))))
