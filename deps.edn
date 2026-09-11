@@ -15,7 +15,7 @@
            ;; Dev-time ONLY: regenerate the default-CSS palette from the
            ;; kotoba-lang HIG design-system SSoT (shitsuke.hig). The output is
            ;; checked into src/x402/directory.cljk so the library keeps zero
-           ;; runtime deps. `clojure -M:gen` to regenerate, `--check` to verify.
+           ;; runtime deps. `kbb -M:gen` to regenerate, `--check` to verify.
            :gen {:extra-paths ["scripts"]
                  :extra-deps {io.github.kotoba-lang/shitsuke
                               {:git/sha "35099a71117c3ef7723a2dfa3e101e3643ae548c"}}
